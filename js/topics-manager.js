@@ -206,6 +206,18 @@ window.TopicsManager = (function () {
                     iconSVG = `<svg class="intencao-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`;
                 } else if (intencao === 'premissa') {
                     iconSVG = `<svg class="intencao-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>`;
+                } else if (intencao === 'veredito') {
+                    iconSVG = `<svg class="intencao-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>`;
+                } else if (intencao === 'fundamentacao') {
+                    iconSVG = `<svg class="intencao-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>`;
+                } else if (intencao === 'alegacao') {
+                    iconSVG = `<svg class="intencao-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`;
+                } else if (intencao === 'fundamento_sentenca') {
+                    iconSVG = `<svg class="intencao-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16M4 2h16M6 6v12M10 6v12M14 6v12M18 6v12M2 6h20"></path></svg>`;
+                } else if (intencao === 'refutacao') {
+                    iconSVG = `<svg class="intencao-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>`;
+                } else if (intencao === 'preliminar') {
+                    iconSVG = `<svg class="intencao-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
                 }
 
                 const badgeClass = isHasIntent ? `sub-badge has-intent intencao-${intencao}` : 'sub-badge';
@@ -225,7 +237,23 @@ window.TopicsManager = (function () {
                 const bordaFaseClass = `borda-fase-${faseSub}`;
 
                 return `
-                    <div class="sub-annotation-item" data-source="${sourceRef}">
+                    <div class="sub-annotation-item" data-source="${sourceRef}"
+                         draggable="true"
+                         ondragstart="SubDnDManager.dragStart(event, '${activeTabId}', ${index}, ${sIdx})"
+                         ondragover="SubDnDManager.dragOver(event)"
+                         ondrop="SubDnDManager.drop(event, '${activeTabId}', ${index}, ${sIdx})"
+                         ondragenter="SubDnDManager.dragEnter(event)"
+                         ondragleave="SubDnDManager.dragLeave(event)"
+                         ondragend="SubDnDManager.dragEnd(event)">
+                         
+                         <!-- Drag Handle (Área de Pegada) -->
+                         <div class="sub-drag-handle" title="Arraste para reordenar esta ideia">
+                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                 <circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle>
+                                 <circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle>
+                             </svg>
+                         </div>
+
                         <div class="sub-annotation-card ${bordaFaseClass}">
                             <div class="${badgeClass}"
                                  title="Opções desta ideia secundária"
