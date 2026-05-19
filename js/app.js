@@ -3,6 +3,7 @@
    ================================================ */
 let topicos              = [];     // Array primário: [{ id, nome, cor, anotacoes: [] }]
 let pdfDoc               = null;   // Documento PDF carregado pelo PDF.js
+window.pendingCoordenadas = null;  // Cache temporário para coordenadas de recorte/highlight
 let currentPage          = 1;      // Página visível atual (atualizada pelo IntersectionObserver)
 let modoRetomada         = false;  // Flag: true quando restaurando sessão existente (evita recriar backup)
 let _encerrarTimer       = null;   // ID do setTimeout de confirmação do botão Encerrar
@@ -580,6 +581,7 @@ async function renderizarPaginaElemento(num, container) {
     };
 
     container._renderTask = page.render(renderContext);
+    let renderCompleto = false; // Flag transacional
 
     try {
         await container._renderTask.promise;
@@ -593,14 +595,23 @@ async function renderizarPaginaElemento(num, container) {
         });
         await tl.render();
 
+        renderCompleto = true; // SINAL VERDE
     } catch (err) {
         if (err.name === 'RenderingCancelledException') {
             console.log(`Renderização da página ${num} cancelada de forma segura (scroll out).`);
+            // Correção de Bug de UX: Força o observer a tentar novamente no futuro
+            container.innerHTML = '';
+            container.dataset.loaded = 'false'; 
         } else {
             console.error('Erro ao renderizar página PDF:', err);
         }
     } finally {
         container._renderTask = null;
+    }
+
+    // Só aplica o Highlight se o render terminou com sucesso absoluto
+    if (renderCompleto && window.PdfHighlighter) {
+        window.PdfHighlighter.aplicarMarcacoesNaPagina(num, container, topicos);
     }
 }
 
@@ -654,9 +665,19 @@ function capturarTrechoSelecionado() {
     const selection    = window.getSelection();
     const selecaoTexto = selection.toString().trim();
 
+    // Reset de estado preventivo
+    window.pendingCoordenadas = null;
+
     if (selecaoTexto.length > 5) {
         const range = selection.getRangeAt(0);
         const rect  = range.getBoundingClientRect();
+        
+        // Captura as coordenadas via módulo novo
+        const container = range.startContainer.parentElement ? range.startContainer.parentElement.closest('.pdf-page-container') : null;
+        if (container && window.PdfHighlighter) {
+            window.pendingCoordenadas = { rects: window.PdfHighlighter.capturarCoordenadasSelecao(container) };
+        }
+
         exibirPopupClassificacao('texto', selecaoTexto, rect.left, rect.bottom + 10);
     } else {
         exibirToast('Selecione um trecho válido no documento antes de usar esta ferramenta.', 'aviso');
@@ -687,7 +708,7 @@ function identificarFaseMetodologica(docNome) {
    CORREÇÃO: não troca de aba automaticamente (evita regressão de UX).
    Usa toast não-intrusivo como feedback.
    ================================================ */
-async function salvarAnotacao(tipo, conteudo, documento, polo, topicoId, comentario = '', targetParentIndex = null) {
+async function salvarAnotacao(tipo, conteudo, documento, polo, topicoId, comentario = '', targetParentIndex = null, coordenadas = null) {
     const topicoAlvo = topicos.find(t => t.id === topicoId);
     if (!topicoAlvo) return;
 
@@ -697,10 +718,12 @@ async function salvarAnotacao(tipo, conteudo, documento, polo, topicoId, comenta
         documento,
         polo,
         pagina: obterRotuloPagina(currentPage), // Aplica a sincronização lógica aqui
+        paginaFisica: currentPage, // NOVO: Crucial para o PDF Highlighter e retomada de sessão
         timestamp: Date.now(),
         conteudo: conteudo,
         pjeId: pjeId,
-        comentario: comentario
+        comentario: comentario,
+        coordenadas: coordenadas // NOVO: Persiste as coordenadas no JSON
     };
 
     const faseNova = identificarFaseMetodologica(documento);
@@ -735,6 +758,12 @@ async function salvarAnotacao(tipo, conteudo, documento, polo, topicoId, comenta
 
     renderizarTopicos();
     salvarBackupAutomatico();
+
+    // NOVO: Repintura Hot-Reload após salvar
+    const pageContainer = document.querySelector(`.pdf-page-container[data-page-number="${currentPage}"]`);
+    if (pageContainer && window.PdfHighlighter) {
+        window.PdfHighlighter.aplicarMarcacoesNaPagina(currentPage, pageContainer, topicos);
+    }
 }
 
 // Fechar popup e desativar modo recorte com Escape
