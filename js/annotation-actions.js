@@ -191,7 +191,6 @@ function excluirAnotacao() {
     if (!confirm('Excluir esta anotação? A ação não pode ser desfeita.')) return;
     topico.anotacoes.splice(index, 1);
     renderizarTopicos(); salvarBackupAutomatico();
-    window.PdfHighlighter?.atualizarMarcacoesVisiveisGlobais();
     exibirToast('Anotação excluída.', 'sucesso');
     _menuAnotacaoCtx = null;
 }
@@ -272,7 +271,6 @@ function excluirItemCorrelacionado(topicoId, parentIndex, correlacionadoIndex) {
     if (!confirm('Excluir este item correlacionado?')) return;
     topicos.find(t => t.id === topicoId).anotacoes[parentIndex].itensCorrelacionados.splice(correlacionadoIndex, 1);
     renderizarTopicos(); salvarBackupAutomatico();
-    window.PdfHighlighter?.atualizarMarcacoesVisiveisGlobais();
     exibirToast('Item correlacionado excluído.', 'sucesso');
 }
 
@@ -497,16 +495,14 @@ function confirmarSmartMove() {
             exibirToast('Prova transformada em Nova Ideia no final.', 'sucesso');
         }
     } else {
-            const cardDestino = topico.anotacoes[destinoIdx];
-            if (!cardDestino.itensCorrelacionados) cardDestino.itensCorrelacionados = [];
-            cardDestino.itensCorrelacionados.push(itemMovido);
-            exibirToast(`Prova agrupada à Ideia ${destinoIdx + 1}.`, 'sucesso');
-        }
-
-        renderizarTopicos(); salvarBackupAutomatico(); 
-        window.PdfHighlighter?.atualizarMarcacoesVisiveisGlobais();
-        fecharModalSmartMove();
+        const cardDestino = topico.anotacoes[destinoIdx];
+        if (!cardDestino.itensCorrelacionados) cardDestino.itensCorrelacionados = [];
+        cardDestino.itensCorrelacionados.push(itemMovido);
+        exibirToast(`Prova agrupada à Ideia ${destinoIdx + 1}.`, 'sucesso');
     }
+
+    renderizarTopicos(); salvarBackupAutomatico(); fecharModalSmartMove();
+}
 
 /* --- TEMA E DRAG & DROP --- */
 window.toggleSubmenuTemas = function() {
