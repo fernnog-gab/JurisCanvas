@@ -714,6 +714,81 @@
 .btn-intent-preliminar svg { stroke: #5d4037; }
 
 /* ================================================
+   RASTREABILIDADE VISUAL DO PDF (HIGHLIGHTS)
+   ================================================ */
+.pdf-highlight {
+    position: absolute;
+    mix-blend-mode: multiply;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 5;
+    border-radius: 2px;
+}
+
+/* Consumo dinâmico das variáveis globais do sistema */
+.highlight-fase-1 { background-color: var(--fase-1-color, #2196F3); }
+.highlight-fase-2 { background-color: var(--fase-2-color, #4CAF50); }
+.highlight-fase-3 { background-color: var(--fase-3-color, #9C27B0); }
+.highlight-fase-4 { background-color: var(--fase-4-color, #FF9800); }
+
+.pdf-marker {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    cursor: help;
+    z-index: 10;
+    transform: translate(-10px, -2px);
+}
+
+/* Tooltip nativo em CSS (Balão e Seta) */
+.pdf-marker::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px); /* Posição inicial */
+    background: #1a3a5c;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    pointer-events: none;
+}
+
+.pdf-marker::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(2px); /* Posição inicial da seta */
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1a3a5c transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+/* Animação sincronizada (ambos se movem 4px para baixo) */
+.pdf-marker:hover::after {
+    opacity: 1; visibility: visible;
+    transform: translateX(-50%) translateY(-6px);
+}
+.pdf-marker:hover::before {
+    opacity: 1; visibility: visible;
+    transform: translateX(-50%) translateY(6px); /* Mantém grudado ao balão */
+}
+
+/* ================================================
    11. BOTÕES FLUTUANTES DE SCROLL (FABs)
    ================================================ */
 .scroll-fab-container {
